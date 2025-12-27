@@ -14,4 +14,4 @@ model = LGBMRegressor(n_estimators=500, learning_rate=0.1, random_state=42)
 model.fit(X, y)
 
 joblib.dump(model, 'model_magnitude_predictor.pkl')
-print("Modelo salvo ")
+print("Modelo FINAL ")
