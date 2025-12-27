@@ -1,0 +1,20 @@
+
+# Arquivos grandes e desnecessários no GitHub
+earthquake.duckdb
+*.duckdb
+dataset/
+
+
+# Cache e arquivos temporários
+__pycache__/
+*.pyc
+.env
+.venv
+venv/
+
+# Arquivos do VS Code
+.vscode/
+
+# Logs e dados temporários
+*.log
+temp/
