@@ -6,7 +6,6 @@ import joblib
 import requests
 import io
 from datetime import datetime, timedelta
-import plotly.graph_objects as go
 
 # ==================== CONFIGURAÇÃO DA PÁGINA ====================
 st.set_page_config(
@@ -19,39 +18,33 @@ st.set_page_config(
 st.title("🌍 EarthQuake AI")
 st.markdown("### Previsão Estatística de Risco Sísmico por Localização")
 st.markdown("_Clique no mapa para estimar a magnitude média histórica de terremotos em qualquer lugar do mundo_")
-st.caption("Modelo treinado com **3.4 milhões** de eventos USGS (1990–2025) · HistGradientBoosting + Prophet")
+st.caption("Modelo treinado com **3.4 milhões** de eventos USGS (1990–2025) · HistGradientBoostingRegressor")
 
-# ==================== CARREGA MODELOS ====================
+# ==================== CARREGA APENAS O MODELO DE MAGNITUDE ====================
 @st.cache_resource
-def load_models():
-    mag_model = joblib.load('model_magnitude_predictor.pkl')
-    prophet_model = joblib.load('prophet_americas_forecast.pkl')
-    return mag_model, prophet_model
+def load_magnitude_model():
+    return joblib.load('model_magnitude_predictor.pkl')
 
-model_mag, prophet_model = load_models()
+model_mag = load_magnitude_model()
 
-# ==================== MAPA INTERATIVO (MUITO MAIS BONITO) ====================
+# ==================== MAPA INTERATIVO (SATÉLITE LINDO) ====================
 st.header("🗺️ Clique no mapa para analisar o risco sísmico")
 
-# Mapa com imagem de satélite (lindo e com continentes bem visíveis)
 m = folium.Map(
     location=[0, 0],
     zoom_start=2,
-    tiles="Esri WorldImagery",  # Satélite lindo!
-    attr="Esri"  # Crédito obrigatório
+    tiles="Esri WorldImagery",
+    attr="Esri"
 )
 
-# Adiciona tiles OpenStreetMap como opção alternativa (claro, se preferir)
 folium.TileLayer(
     tiles="OpenStreetMap",
     name="Ruas (claro)",
     show=False
 ).add_to(m)
 
-# Controle de camadas
 folium.LayerControl().add_to(m)
 
-# Renderiza o mapa
 map_data = st_folium(m, width=1200, height=500, key="main_map")
 
 # ==================== LOCALIZAÇÃO SELECIONADA ====================
@@ -117,65 +110,30 @@ st.markdown("""
 | ≥ 7.0    | Graves a catastróficos                 | Muito raro     |
 """)
 
-# ==================== PREVISÃO MENSAL (AMÉRICAS) ====================
-st.header("📈 Previsão de Eventos Mensais – Américas (ano 2026)")
+# ==================== TENDÊNCIA HISTÓRICA (GRÁFICO ESTÁTICO) ====================
+st.header("📈 Tendência Histórica de Atividade Sísmica – Américas")
 
-future = prophet_model.make_future_dataframe(periods=12, freq='ME')
-forecast = prophet_model.predict(future)
-
-today = datetime(2025, 12, 29)
-forecast_future = forecast[forecast['ds'] > today]
-
-fig = go.Figure()
-fig.add_trace(go.Scatter(
-    x=forecast_future['ds'],
-    y=forecast_future['yhat'],
-    mode='lines+markers',
-    name='Previsão',
-    line=dict(color='#e63946', width=4),
-    marker=dict(size=8)
-))
-fig.add_trace(go.Scatter(
-    x=forecast_future['ds'],
-    y=forecast_future['yhat_upper'],
-    mode='lines',
-    line=dict(width=0),
-    showlegend=False,
-    hoverinfo='none'
-))
-fig.add_trace(go.Scatter(
-    x=forecast_future['ds'],
-    y=forecast_future['yhat_lower'],
-    mode='lines',
-    fill='tonexty',
-    fillcolor='rgba(230, 57, 70, 0.2)',
-    name='Intervalo de Confiança (80%)',
-    line=dict(width=0)
-))
-
-fig.update_layout(
-    title="Número Estimado de Terremotos por Mês nas Américas",
-    xaxis_title="Data",
-    yaxis_title="Número de Eventos",
-    template="plotly_white",
-    height=500,
-    hovermode="x unified"
+st.image(
+    'forecast_americas.png',
+    caption="Histórico recente + projeção simples baseada em média móvel e tendência linear (últimos 10 anos)",
+    use_container_width=True  # <-- CORRIGIDO: era use_column_width
 )
 
-st.plotly_chart(fig, use_container_width=True)
+st.info(
+    "O aumento gradual no número de eventos registrados reflete principalmente **melhorias na rede de detecção sísmica global** "
+    "ao longo dos anos, e não necessariamente um aumento real na atividade tectônica."
+)
 
-# ==================== ALERTAS EM TEMPO REAL (COM AUTO-UPDATE A CADA 1 MINUTO) ====================
+# ==================== ALERTAS EM TEMPO REAL (AUTO-UPDATE A CADA 1 MINUTO) ====================
 st.header("🚨 Alertas Globais – Terremotos M ≥ 6.0 (Últimos 30 Dias)")
 
-# Placeholder para atualizar automaticamente
 alert_placeholder = st.empty()
 status_placeholder = st.empty()
 
 with alert_placeholder.container():
     status_placeholder.info("🔄 Carregando dados em tempo real da USGS...")
 
-# Função para carregar alertas
-@st.cache_data(ttl=60)  # Cache de 60 segundos = atualiza a cada 1 minuto
+@st.cache_data(ttl=60)
 def load_earthquake_alerts():
     try:
         end_time = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
@@ -203,26 +161,25 @@ def load_earthquake_alerts():
         df.columns = ['Data/Hora (UTC)', 'Magnitude', 'Local', 'Profundidade (km)']
         df['Magnitude'] = df['Magnitude'].round(1)
 
-        return df, f"✅ Atualizado agora: {datetime.utcnow().strftime('%d/%m/%Y %H:%M')} UTC"
+        return df, f"✅ Atualizado agora: {datetime.utcnow().strftime('%d/%m/%2025 %H:%M')} UTC"
 
-    except Exception as e:
-        return None, "⚠️ Falha ao carregar dados da USGS (sem conexão ou serviço temporariamente indisponível). Tentando novamente em 1 minuto..."
+    except Exception:
+        return None, "⚠️ Falha ao carregar dados da USGS. Tentando novamente em 1 minuto..."
 
-# Carrega e exibe
 alerts_df, message = load_earthquake_alerts()
 
 with alert_placeholder.container():
     status_placeholder.success(message)
     if alerts_df is not None:
-        st.dataframe(alerts_df, use_container_width=True, hide_index=True)
+        st.dataframe(alerts_df, use_container_width=True, hide_index=True)  # <-- CORRIGIDO aqui também
 
 # ==================== RODAPÉ ====================
 st.markdown("---")
 st.markdown(
     """
     **EarthQuake AI** – Projeto portfólio 2025  
-    Modelos: HistGradientBoostingRegressor + Prophet  
-    Dados: USGS Earthquake Catalog + API em tempo real  
-    Feito com ❤️ e Streamlit · Atualização automática dos alertas a cada minuto
+    Modelo: HistGradientBoostingRegressor (scikit-learn)  
+    Dados: USGS Earthquake Catalog (1990–2025) + API em tempo real  
+    Feito com ❤️ e Streamlit · Alertas atualizados a cada minuto  
     """
 )

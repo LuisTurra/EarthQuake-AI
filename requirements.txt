@@ -3,7 +3,5 @@ folium
 streamlit-folium
 plotly
 joblib
-lightgbm==4.6.0
-prophet
 pandas
 requests
