@@ -15,8 +15,8 @@ _(Captura de tela do app rodando – substitua por uma imagem real depois do dep
 
 - **Python** + **Streamlit** (app web interativo)
 - **Folium** (mapa clicável com OpenStreetMap)
-- **LightGBM** (modelo de regressão para estimativa de magnitude média histórica)
-- **Prophet** (forecast de eventos mensais)
+- **HistGradientBoost** (modelo de regressão para estimativa de magnitude média histórica)
+- **HistGradientBoost** (forecast de eventos mensais)
 - **DuckDB** (processamento local eficiente de 3.4M eventos USGS)
 - **API USGS** (dados em tempo real)
 

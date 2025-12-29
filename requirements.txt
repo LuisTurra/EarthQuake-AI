@@ -1,7 +1,12 @@
 streamlit
+duckdb
+polars
+pandas
+numpy
+joblib
+scikit-learn==1.5.2  
+matplotlib
+plotly
 folium
 streamlit-folium
-plotly
-joblib
-pandas
 requests
