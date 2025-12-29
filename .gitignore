@@ -14,7 +14,7 @@ venv/
 
 # Arquivos do VS Code
 .vscode/
-
+machine_learning(OLD LIGHTGBM).py
 # Logs e dados temporários
 *.log
 temp/
