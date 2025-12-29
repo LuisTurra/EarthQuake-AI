@@ -8,8 +8,8 @@ Um aplicativo interativo que permite ao usuário:
 - Consultar **alertas em tempo real** da USGS (terremotos M > 6.0 últimos 30 dias).
 - Entender o significado de cada magnitude de forma clara.
 
-![Demo do App](https://via.placeholder.com/800x450.png?text=EarthQuake+AI+-+Demo+do+App)  
-_(Captura de tela do app rodando – substitua por uma imagem real depois do deploy)_
+![Demo do App](https://luisturra-deteccao-fraude-cartao-credito-streamlit-app-99a0gz.streamlit.app/)  
+
 
 ## 🚀 Tecnologias Utilizadas
 
